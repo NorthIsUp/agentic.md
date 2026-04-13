@@ -1,0 +1,19 @@
+# agentic-sync
+
+Rust CLI that syncs Claude Code config to Cursor and Copilot.
+
+## Build
+
+```
+cargo build --release
+```
+
+## Testing
+
+```
+cargo test
+```
+
+## Code Style
+
+Use `cargo fmt` and `cargo clippy` before committing.

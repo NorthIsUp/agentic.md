@@ -1,0 +1,9 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Build
+---
+
+```
+cargo build --release
+```

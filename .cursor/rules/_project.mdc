@@ -1,0 +1,8 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+---
+
+# agentic-sync
+
+Rust CLI that syncs Claude Code config to Cursor and Copilot.

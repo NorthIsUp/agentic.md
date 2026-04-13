@@ -1,0 +1,9 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Testing
+---
+
+```
+cargo test
+```

@@ -1,0 +1,7 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Code Style
+---
+
+Use `cargo fmt` and `cargo clippy` before committing.
