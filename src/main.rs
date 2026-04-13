@@ -3,7 +3,10 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 #[derive(Parser, Debug)]
-#[command(name = "agentic-sync", about = "Sync Claude Code config to other AI tools")]
+#[command(
+    name = "agentic-sync",
+    about = "Sync Claude Code config to other AI tools"
+)]
 struct Cli {
     /// Compare generated output to disk (default mode)
     #[arg(long)]
@@ -33,7 +36,9 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
 
     let mode = if cli.fix {
-        agentic_sync::Mode::Fix { overwrite: cli.overwrite }
+        agentic_sync::Mode::Fix {
+            overwrite: cli.overwrite,
+        }
     } else if cli.pr {
         agentic_sync::Mode::Pr
     } else {

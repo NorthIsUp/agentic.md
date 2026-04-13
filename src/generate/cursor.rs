@@ -197,10 +197,7 @@ mod tests {
 
         let files = generate(root, &config);
         assert_eq!(files.len(), 1);
-        assert_eq!(
-            files[0].path,
-            root.join(".cursor/skills/explain-code.mdc")
-        );
+        assert_eq!(files[0].path, root.join(".cursor/skills/explain-code.mdc"));
         assert!(files[0].content.contains("generated-by: agentic-sync"));
         assert!(files[0].content.contains("alwaysApply: true"));
         assert!(files[0].content.contains("description: Explains code"));
@@ -232,10 +229,12 @@ mod tests {
 
         let parsed: serde_json::Value = serde_json::from_str(&files[0].content).unwrap();
         assert!(parsed.get("mcpServers").is_some());
-        assert!(parsed["mcpServers"]["my-server"]["command"]
-            .as_str()
-            .unwrap()
-            == "npx");
+        assert!(
+            parsed["mcpServers"]["my-server"]["command"]
+                .as_str()
+                .unwrap()
+                == "npx"
+        );
     }
 
     #[test]

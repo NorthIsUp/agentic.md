@@ -5,8 +5,8 @@ pub fn parse_mcp(path: &Path) -> Result<McpConfig, String> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| format!("Failed to read {}: {e}", path.display()))?;
 
-    let value: serde_json::Value =
-        serde_json::from_str(&content).map_err(|e| format!("Invalid JSON in {}: {e}", path.display()))?;
+    let value: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|e| format!("Invalid JSON in {}: {e}", path.display()))?;
 
     let servers = if let Some(mcp_servers) = value.get("mcpServers") {
         mcp_servers.clone()

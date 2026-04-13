@@ -66,16 +66,12 @@ pub fn fix(files: &[GeneratedFile], overwrite: bool) -> OutputResult {
             continue;
         }
 
-        if let Some(parent) = file.path.parent() {
-            if !parent.exists() {
-                if let Err(e) = std::fs::create_dir_all(parent) {
-                    crate::log::error_file(
-                        &file.path,
-                        &format!("failed to create directory: {e}"),
-                    );
-                    continue;
-                }
-            }
+        if let Some(parent) = file.path.parent()
+            && !parent.exists()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            crate::log::error_file(&file.path, &format!("failed to create directory: {e}"));
+            continue;
         }
 
         match std::fs::write(&file.path, &file.content) {
@@ -93,10 +89,7 @@ pub fn fix(files: &[GeneratedFile], overwrite: bool) -> OutputResult {
 
 pub fn cleanup(root: &Path, current_files: &[GeneratedFile]) -> Vec<PathBuf> {
     let mut deleted = Vec::new();
-    let dirs = [
-        root.join(".cursor/rules"),
-        root.join(".cursor/skills"),
-    ];
+    let dirs = [root.join(".cursor/rules"), root.join(".cursor/skills")];
 
     for dir in &dirs {
         if !dir.is_dir() {
@@ -116,10 +109,8 @@ pub fn cleanup(root: &Path, current_files: &[GeneratedFile]) -> Vec<PathBuf> {
                 continue;
             }
             // Only delete if it has the generated-by marker
-            if has_generated_by_marker(&path) {
-                if std::fs::remove_file(&path).is_ok() {
-                    deleted.push(path);
-                }
+            if has_generated_by_marker(&path) && std::fs::remove_file(&path).is_ok() {
+                deleted.push(path);
             }
         }
     }
@@ -170,8 +161,7 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let path = dir.path().join(".cursor/rules/test.mdc");
         fs::create_dir_all(path.parent().unwrap()).unwrap();
-        let content =
-            "---\ngenerated-by: agentic-sync\nalwaysApply: true\n---\n\nSame content.\n";
+        let content = "---\ngenerated-by: agentic-sync\nalwaysApply: true\n---\n\nSame content.\n";
         fs::write(&path, content).unwrap();
 
         let files = vec![GeneratedFile {

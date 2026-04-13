@@ -36,7 +36,11 @@ pub fn parse_targets(names: &[String]) -> Result<Vec<Target>, String> {
         .collect()
 }
 
-pub fn run(root: &Path, mode: Mode, targets: &[Target]) -> Result<ExitCode, Box<dyn std::error::Error>> {
+pub fn run(
+    root: &Path,
+    mode: Mode,
+    targets: &[Target],
+) -> Result<ExitCode, Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(root)
         .map_err(|e| format!("Invalid path '{}': {e}", root.display()))?;
 
@@ -51,9 +55,8 @@ pub fn run(root: &Path, mode: Mode, targets: &[Target]) -> Result<ExitCode, Box<
         return Ok(ExitCode::SUCCESS);
     }
 
-    let config = parse::parse_all(&sources).map_err(|e| {
-        log::error(&e);
-        e
+    let config = parse::parse_all(&sources).inspect_err(|e| {
+        log::error(e);
     })?;
 
     let claude_md_content = sources
@@ -65,7 +68,10 @@ pub fn run(root: &Path, mode: Mode, targets: &[Target]) -> Result<ExitCode, Box<
     for target in targets {
         match target {
             Target::Cursor => generated.extend(generate::cursor::generate(&root, &config)),
-            Target::Copilot => generated.extend(generate::copilot::generate(&root, claude_md_content.as_deref())),
+            Target::Copilot => generated.extend(generate::copilot::generate(
+                &root,
+                claude_md_content.as_deref(),
+            )),
         }
     }
 

@@ -51,15 +51,11 @@ fn slugify(text: &str) -> String {
     collapsed.trim_matches('-').to_string()
 }
 
+type TargetOverrides = HashMap<String, Vec<(String, String)>>;
+
 /// Parse YAML-style frontmatter from a rules file.
 /// Returns (description, target_overrides, remaining_body).
-fn parse_frontmatter(
-    content: &str,
-) -> (
-    Option<String>,
-    HashMap<String, Vec<(String, String)>>,
-    String,
-) {
+fn parse_frontmatter(content: &str) -> (Option<String>, TargetOverrides, String) {
     let trimmed = content.trim_start();
     if !trimmed.starts_with("---") {
         return (None, HashMap::new(), content.to_string());
@@ -79,11 +75,7 @@ fn parse_frontmatter(
             let fm = &after_first_newline[..pos];
             let after_close = &after_first_newline[pos + 4..];
             let after_close = after_close.trim_start_matches('-');
-            let after_close = if after_close.starts_with('\n') {
-                &after_close[1..]
-            } else {
-                after_close
-            };
+            let after_close = after_close.strip_prefix('\n').unwrap_or(after_close);
             (fm, after_close.to_string())
         }
         None => return (None, HashMap::new(), content.to_string()),
@@ -138,10 +130,7 @@ mod tests {
         assert_eq!(section.description, Some("Testing guidelines".to_string()));
         assert_eq!(section.body, "Run cargo test before committing.");
         let cursor = section.target_overrides.get("cursor").unwrap();
-        assert_eq!(
-            cursor[0],
-            ("alwaysApply".to_string(), "false".to_string())
-        );
+        assert_eq!(cursor[0], ("alwaysApply".to_string(), "false".to_string()));
         assert_eq!(section.source, SectionSource::Rules);
     }
 

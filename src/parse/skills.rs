@@ -40,15 +40,11 @@ pub fn parse_skill(path: &Path) -> Result<Skill, String> {
     })
 }
 
+type TargetOverrides = HashMap<String, Vec<(String, String)>>;
+
 /// Parse YAML-style frontmatter from a SKILL.md file.
 /// Returns (field_map, target_overrides, remaining_body).
-fn parse_frontmatter(
-    content: &str,
-) -> (
-    HashMap<String, String>,
-    HashMap<String, Vec<(String, String)>>,
-    String,
-) {
+fn parse_frontmatter(content: &str) -> (HashMap<String, String>, TargetOverrides, String) {
     let trimmed = content.trim_start();
     if !trimmed.starts_with("---") {
         return (HashMap::new(), HashMap::new(), content.to_string());
@@ -67,11 +63,7 @@ fn parse_frontmatter(
             let fm = &after_first_newline[..pos];
             let after_close = &after_first_newline[pos + 4..];
             let after_close = after_close.trim_start_matches('-');
-            let after_close = if after_close.starts_with('\n') {
-                &after_close[1..]
-            } else {
-                after_close
-            };
+            let after_close = after_close.strip_prefix('\n').unwrap_or(after_close);
             (fm, after_close.to_string())
         }
         None => return (HashMap::new(), HashMap::new(), content.to_string()),

@@ -17,30 +17,30 @@ pub fn discover(root: &Path) -> Sources {
     }
 
     let rules_dir = root.join(".claude/rules");
-    if rules_dir.is_dir() {
-        if let Ok(entries) = std::fs::read_dir(&rules_dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.extension().is_some_and(|e| e == "md") && path.is_file() {
-                    sources.rules.push(path);
-                }
+    if rules_dir.is_dir()
+        && let Ok(entries) = std::fs::read_dir(&rules_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "md") && path.is_file() {
+                sources.rules.push(path);
             }
-            sources.rules.sort();
         }
+        sources.rules.sort();
     }
 
     let skills_dir = root.join(".claude/skills");
-    if skills_dir.is_dir() {
-        if let Ok(entries) = std::fs::read_dir(&skills_dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                let skill_md = path.join("SKILL.md");
-                if path.is_dir() && skill_md.is_file() {
-                    sources.skills.push(skill_md);
-                }
+    if skills_dir.is_dir()
+        && let Ok(entries) = std::fs::read_dir(&skills_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let skill_md = path.join("SKILL.md");
+            if path.is_dir() && skill_md.is_file() {
+                sources.skills.push(skill_md);
             }
-            sources.skills.sort();
         }
+        sources.skills.sort();
     }
 
     let mcp = root.join(".mcp.json");

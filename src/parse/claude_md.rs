@@ -87,14 +87,9 @@ fn split_on_h2(content: &str) -> Vec<(Option<String>, String)> {
             }
             current_title = Some(heading.trim().to_string());
             current_body = String::new();
-        } else {
-            if !current_body.is_empty() || !line.is_empty() || !in_preamble {
-                current_body.push_str(line);
-                current_body.push('\n');
-            } else if in_preamble && !line.is_empty() {
-                current_body.push_str(line);
-                current_body.push('\n');
-            }
+        } else if !current_body.is_empty() || !line.is_empty() || !in_preamble {
+            current_body.push_str(line);
+            current_body.push('\n');
         }
     }
 
@@ -121,7 +116,7 @@ fn parse_section_frontmatter(body: &str) -> (HashMap<String, Vec<(String, String
     }
 
     // Find the closing ---
-    let after_open = &trimmed[3..].trim_start_matches(|c: char| c == '-');
+    let after_open = &trimmed[3..].trim_start_matches('-');
     let after_first_newline = match after_open.find('\n') {
         Some(i) => &after_open[i + 1..],
         None => return (HashMap::new(), body.to_string()),
@@ -134,11 +129,7 @@ fn parse_section_frontmatter(body: &str) -> (HashMap<String, Vec<(String, String
             let after_close = &after_first_newline[pos + 4..]; // skip \n---
             // Skip past optional trailing dashes and newline
             let after_close = after_close.trim_start_matches('-');
-            let after_close = if after_close.starts_with('\n') {
-                &after_close[1..]
-            } else {
-                after_close
-            };
+            let after_close = after_close.strip_prefix('\n').unwrap_or(after_close);
             (fm, after_close.to_string())
         }
         None => return (HashMap::new(), body.to_string()),
