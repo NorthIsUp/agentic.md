@@ -5,4 +5,4 @@ alwaysApply: true
 
 # agentic-sync
 
-Rust CLI that syncs Claude Code config to Cursor and Copilot.
+Rust CLI that syncs Claude Code project config to Cursor and Copilot. Single binary, no runtime dependencies.

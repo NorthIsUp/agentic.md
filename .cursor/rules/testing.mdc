@@ -4,6 +4,8 @@ alwaysApply: true
 description: Testing
 ---
 
-```
-cargo test
-```
+- TDD: write failing test first, then implement
+- Unit tests are inline (`#[cfg(test)] mod tests`) in each module
+- Integration tests in `tests/integration/` exercise the full `run()` function
+- Use `tempfile::tempdir()` for filesystem tests — never write to the real project dir in tests
+- Test both the happy path and edge cases (empty input, missing files, conflicts)

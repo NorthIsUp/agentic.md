@@ -4,4 +4,8 @@ alwaysApply: true
 description: Code Style
 ---
 
-Use `cargo fmt` and `cargo clippy` before committing.
+- `cargo fmt` before committing — enforced by hk pre-commit hook
+- `cargo clippy -- -D warnings` — zero warnings policy
+- No `unwrap()` in library code (src/lib.rs and modules). `unwrap()` is fine in tests and main.rs.
+- Prefer `if let` / `let else` over match for single-arm patterns.
+- Errors as strings (`Result<T, String>`) for simplicity — no custom error types yet.

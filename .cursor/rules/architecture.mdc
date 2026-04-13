@@ -1,0 +1,16 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Architecture
+---
+
+Pipeline: discover → parse → IR → generate → output.
+
+- `src/discover.rs` — finds source files (CLAUDE.md, .claude/rules/, .claude/skills/, .mcp.json)
+- `src/parse/` — parsers for each source type, produces `ProjectConfig` IR
+- `src/ir.rs` — intermediate representation: `ProjectConfig`, `Section`, `Skill`, `McpConfig`
+- `src/generate/` — one module per target (cursor.rs, copilot.rs), transforms IR to output files
+- `src/output.rs` — file writing, ownership checking (`generated-by` marker), cleanup
+- `src/log.rs` — stderr logging with GitHub Actions annotation support
+
+Adding a new target means adding a generator module and an `--out` variant. Parsers don't change.

@@ -1,0 +1,14 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Development Commands
+---
+
+- `cargo build` — build debug binary
+- `cargo build --release` — build release binary
+- `cargo test` — run all unit + integration tests
+- `cargo run -- --fix` — generate target files for this repo
+- `cargo run -- --check` — verify target files are in sync
+- `cargo run -- --pr` — output markdown diff summary
+- `hk check -a` — run all linters (requires `mise install`)
+- `hk fix -a` — auto-fix all lintable issues

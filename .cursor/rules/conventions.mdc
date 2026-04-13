@@ -1,0 +1,10 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Conventions
+---
+
+- Commit messages follow conventional commits: `feat:`, `fix:`, `test:`, `chore:`, `docs:`, `refactor:`
+- One concern per commit — don't mix features with refactors
+- Generated files are always committed (not gitignored)
+- All generated files include `generated-by: agentic-sync` in frontmatter for ownership tracking

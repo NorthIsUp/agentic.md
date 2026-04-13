@@ -1,0 +1,14 @@
+---
+description: Safety rules for the output module (writing, checking, cleanup)
+---
+The output module (`src/output.rs`) is the only code that touches the filesystem on write. It enforces these safety rules:
+
+1. **Never overwrite a file without the `generated-by: agentic-sync` marker** unless `--overwrite` is set. This prevents clobbering hand-written config.
+
+2. **Cleanup only deletes files with the marker.** Scan `.cursor/rules/` and `.cursor/skills/` for files that have the marker but aren't in the current generated set. Hand-written files are never deleted.
+
+3. **Create parent directories automatically** on `--fix`. Don't error if `.cursor/rules/` doesn't exist yet.
+
+4. **Check mode is read-only.** `output::check()` must never write, delete, or create anything. It only compares and reports.
+
+5. **Exit codes are meaningful.** 0 = success/in-sync. 1 = stale/skipped. 2 = parse error. Never exit 0 when files are out of sync in check mode.

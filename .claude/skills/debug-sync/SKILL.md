@@ -1,0 +1,48 @@
+---
+name: debug-sync
+description: Debug why agentic-sync check is failing or producing unexpected output
+disable-model-invocation: true
+---
+
+Debug an agentic-sync issue. Context: $ARGUMENTS
+
+## Diagnosis steps
+
+1. **Run check with the failing project path**:
+   ```
+   cargo run -- --check [path]
+   ```
+   Note the exit code and stderr output.
+
+2. **Run pr mode to see the diff**:
+   ```
+   cargo run -- --pr [path]
+   ```
+   This shows exactly what's stale and why.
+
+3. **Check the source files** — read the CLAUDE.md, .claude/rules/, .claude/skills/, .mcp.json at the project root. Verify they parse correctly:
+   - Are `## ` headings at column 0? (indented headings won't split)
+   - Is frontmatter `---` delimited with no leading spaces?
+   - Are `cursor:` lines in the format `cursor: key=value` (space after colon)?
+
+4. **Check the generated files** — read the .cursor/rules/*.mdc files. Verify:
+   - Do they have `generated-by: agentic-sync` in frontmatter?
+   - Does the content match what the source should produce?
+
+5. **Check for ownership conflicts** — if `--fix` is skipping files:
+   - The target file exists but lacks `generated-by: agentic-sync`
+   - Use `--overwrite` to force, or add the marker manually
+
+6. **Run the unit tests** for the relevant parser:
+   ```
+   cargo test parse::claude_md::tests
+   cargo test parse::rules::tests
+   cargo test parse::skills::tests
+   cargo test parse::mcp::tests
+   ```
+
+7. **If the issue is in generation**, test the specific generator:
+   ```
+   cargo test generate::cursor::tests
+   cargo test generate::copilot::tests
+   ```

@@ -1,0 +1,11 @@
+---
+generated-by: agentic-sync
+alwaysApply: true
+description: Stack
+---
+
+- Rust 2024 edition
+- clap 4 for CLI arg parsing (derive API)
+- serde + serde_json + serde_yaml for serialization
+- similar for text diffing (--pr mode)
+- tempfile for test fixtures

@@ -1,0 +1,32 @@
+---
+generated-by: agentic-sync
+alwaysApply: false
+description: Add support for a new frontmatter field in source parsing or target generation
+---
+
+Add support for a new frontmatter field. The field spec is $ARGUMENTS.
+
+## Determine where it belongs
+
+- **Source field** (from CLAUDE.md / SKILL.md frontmatter): modify the parser in `src/parse/` and add the field to the IR type in `src/ir.rs`
+- **Target override** (e.g. `cursor: newField=value`): the parser already handles arbitrary `target: key=value` pairs, so you only need to map it in the generator
+- **Both**: add to IR and map in generator
+
+## For source fields (IR change)
+
+1. Add the field to the relevant struct in `src/ir.rs` (`Section`, `Skill`, or `McpConfig`)
+2. Update the parser that populates it (e.g. `src/parse/skills.rs` for SKILL.md fields)
+3. Update all test fixtures that construct the struct — the compiler will catch these
+4. Map the field in every generator that should use it
+
+## For target overrides (generator change)
+
+1. Add a match arm in the generator's override loop (e.g. `src/generate/cursor.rs`)
+2. Use the value to populate the target's frontmatter
+3. Add a test that verifies the override works
+
+## Verify
+
+```
+cargo test && cargo clippy -- -D warnings
+```

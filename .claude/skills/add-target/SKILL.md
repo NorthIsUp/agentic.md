@@ -1,0 +1,38 @@
+---
+name: add-target
+description: Add a new sync target (e.g. Codex, Gemini) to agentic-sync
+disable-model-invocation: true
+---
+
+Add a new sync target to agentic-sync. The target name is $ARGUMENTS.
+
+## Steps
+
+1. **Add the variant to `Target` enum** in `src/lib.rs`:
+   - Add the new variant to the `Target` enum
+   - Add it to `all_targets()`
+   - Add the string match to `parse_targets()`
+
+2. **Create the generator** at `src/generate/{target}.rs`:
+   - Import `super::GeneratedFile` and any needed IR types
+   - Implement `pub fn generate(root: &Path, ...) -> Vec<GeneratedFile>`
+   - Follow the generator contract in `.claude/rules/generator-contract.md`
+   - Include `generated-by: agentic-sync` marker in all output
+
+3. **Register the module** in `src/generate/mod.rs`:
+   - Add `pub mod {target};`
+
+4. **Wire it into `run()`** in `src/lib.rs`:
+   - Add a `Target::{Name}` arm to the match in the generate loop
+   - Pass the right data (config, claude_md_content, etc.)
+
+5. **Write tests** in the generator module:
+   - Test basic generation
+   - Test edge cases (no input, empty config)
+
+6. **Add integration test** in `tests/integration/fix_test.rs`:
+   - Test with `--out={target}` filter
+
+7. **Update README.md** supported targets table
+
+8. **Run the full suite**: `cargo test && cargo clippy -- -D warnings`
