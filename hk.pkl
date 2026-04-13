@@ -3,7 +3,7 @@ import "package://github.com/jdx/hk/releases/download/v1.18.1/hk@1.18.1#/Builtin
 
 local linters = new Mapping<String, Step> {
     ["agentic-sync"] {
-        glob = List("CLAUDE.md", ".claude/**", ".mcp.json")
+        glob = List("CLAUDE.md", "AGENTS.md", "AGENT.md", ".claude/**", ".mcp.json")
         check = "cargo run -- --check"
         fix = "cargo run -- --fix"
     }

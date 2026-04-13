@@ -2,14 +2,14 @@
 
 Write your AI coding instructions once. Use them everywhere.
 
-`agentic-sync` reads your Claude Code configuration — `CLAUDE.md`, rules, skills, and MCP servers — and generates native config files for Cursor, GitHub Copilot, and more. Claude is the source of truth. Everything else stays in sync.
+`agentic-sync` reads your AI coding instructions — `CLAUDE.md`, `AGENTS.md`, or `AGENT.md`, plus rules, skills, and MCP servers — and generates native config files for Cursor, GitHub Copilot, and more. Write once, sync everywhere.
 
 ```
 agentic-sync --fix
 ```
 
 ```
-CLAUDE.md                        .cursor/rules/stack.mdc
+CLAUDE.md (or AGENTS.md)         .cursor/rules/stack.mdc
                           -->    .cursor/rules/testing.mdc
                                  .cursor/rules/conventions.mdc
                                  .cursor/skills/explain-code.mdc
@@ -19,9 +19,9 @@ CLAUDE.md                        .cursor/rules/stack.mdc
 
 ## Why
 
-Every AI coding tool has its own config format. Cursor uses `.mdc` files with YAML frontmatter. Copilot uses `.github/copilot-instructions.md`. Claude uses `CLAUDE.md` and `.claude/skills/`. If you use more than one tool — or your team does — you maintain the same rules in multiple places.
+Every AI coding tool has its own config format. Cursor uses `.mdc` files with YAML frontmatter. Copilot uses `.github/copilot-instructions.md`. Claude uses `CLAUDE.md`. Codex uses `AGENTS.md`. If you use more than one tool — or your team does — you maintain the same rules in multiple places.
 
-`agentic-sync` eliminates that. Write your rules in Claude's format, run the tool, and every other tool gets native config files generated from the same source.
+`agentic-sync` eliminates that. Write your rules in one file (`CLAUDE.md`, `AGENTS.md`, or `AGENT.md` — whichever you already have), run the tool, and every other tool gets native config files generated from the same source.
 
 ## Install
 
@@ -52,7 +52,7 @@ cargo install --git https://github.com/NorthIsUp/agentic.md
 
 ## Quick Start
 
-If you already have a `CLAUDE.md` in your project:
+If you already have a `CLAUDE.md`, `AGENTS.md`, or `AGENT.md` in your project:
 
 ```sh
 # Generate Cursor + Copilot config
@@ -66,12 +66,12 @@ That's it. Commit the generated files so teammates using Cursor or Copilot get t
 
 ## What Gets Synced
 
-### CLAUDE.md &rarr; Cursor Rules
+### Instruction File &rarr; Cursor Rules
 
-Each `## Heading` in your `CLAUDE.md` becomes a separate `.cursor/rules/{slug}.mdc` file with `alwaysApply: true`.
+The tool looks for `CLAUDE.md`, `AGENTS.md`, or `AGENT.md` (first one found wins). Each `## Heading` becomes a separate `.cursor/rules/{slug}.mdc` file with `alwaysApply: true`.
 
 ```markdown
-<!-- CLAUDE.md -->
+<!-- CLAUDE.md / AGENTS.md / AGENT.md -->
 
 # My Project
 
@@ -96,9 +96,9 @@ Generates:
 .cursor/rules/conventions.mdc     # "Use conventional commits..."
 ```
 
-### CLAUDE.md &rarr; Copilot Instructions
+### Instruction File &rarr; Copilot Instructions
 
-The full `CLAUDE.md` is copied verbatim to `.github/copilot-instructions.md`. Copilot uses one flat file, so no splitting is needed.
+The full instruction file is copied verbatim to `.github/copilot-instructions.md`. Copilot uses one flat file, so no splitting is needed.
 
 ### .claude/rules/*.md &rarr; Cursor Rules
 
@@ -185,7 +185,7 @@ Stale files appear as warnings in the PR diff.
 
 ```pkl
 ["agentic-sync"] {
-    glob = List("CLAUDE.md", ".claude/**", ".mcp.json")
+    glob = List("CLAUDE.md", "AGENTS.md", "AGENT.md", ".claude/**", ".mcp.json")
     check = "agentic-sync --check"
     fix = "agentic-sync --fix"
 }
@@ -210,16 +210,18 @@ agentic-sync --check || { echo "Run 'agentic-sync --fix' to sync"; exit 1; }
 ## How It Works
 
 ```
- Source (Claude)              Intermediate            Targets
+ Source                       Intermediate            Targets
                               Representation
 
- CLAUDE.md ──────┐                              ┌──> .cursor/rules/*.mdc
-                 │                              │
- .claude/rules/  ├──> parse ──> ProjectConfig ──├──> .cursor/skills/*.mdc
-                 │                              │
- .claude/skills/ ┤                              ├──> .cursor/mcp.json
-                 │                              │
- .mcp.json ──────┘                              └──> .github/copilot-instructions.md
+ CLAUDE.md ──┐                                  ┌──> .cursor/rules/*.mdc
+ AGENTS.md ──┤                                  │
+ AGENT.md  ──┤               ProjectConfig      ├──> .cursor/skills/*.mdc
+             ├──> parse ──> (sections, skills, ──┤
+ .claude/rules/              mcp)                ├──> .cursor/mcp.json
+             │                                  │
+ .claude/skills/                                └──> .github/copilot-instructions.md
+             │
+ .mcp.json ──┘
 ```
 
 Sources are parsed into a common `ProjectConfig` struct, then each target generator transforms that IR into native config files. Adding a new target means writing one generator — the parsers don't change.

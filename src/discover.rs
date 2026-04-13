@@ -11,9 +11,13 @@ pub struct Sources {
 pub fn discover(root: &Path) -> Sources {
     let mut sources = Sources::default();
 
-    let claude_md = root.join("CLAUDE.md");
-    if claude_md.is_file() {
-        sources.claude_md = Some(claude_md);
+    // Look for instruction files in priority order
+    for name in ["CLAUDE.md", "AGENTS.md", "AGENT.md"] {
+        let path = root.join(name);
+        if path.is_file() {
+            sources.claude_md = Some(path);
+            break;
+        }
     }
 
     let rules_dir = root.join(".claude/rules");
@@ -88,6 +92,36 @@ mod tests {
         assert_eq!(sources.skills.len(), 1);
         assert!(sources.skills[0].ends_with("SKILL.md"));
         assert!(sources.mcp_json.is_some());
+    }
+
+    #[test]
+    fn discovers_agents_md() {
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        fs::write(root.join("AGENTS.md"), "# Agents").unwrap();
+        let sources = discover(root);
+        assert!(sources.claude_md.is_some());
+        assert!(sources.claude_md.unwrap().ends_with("AGENTS.md"));
+    }
+
+    #[test]
+    fn discovers_agent_md() {
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        fs::write(root.join("AGENT.md"), "# Agent").unwrap();
+        let sources = discover(root);
+        assert!(sources.claude_md.is_some());
+        assert!(sources.claude_md.unwrap().ends_with("AGENT.md"));
+    }
+
+    #[test]
+    fn claude_md_takes_priority_over_agents_md() {
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        fs::write(root.join("CLAUDE.md"), "# Claude").unwrap();
+        fs::write(root.join("AGENTS.md"), "# Agents").unwrap();
+        let sources = discover(root);
+        assert!(sources.claude_md.unwrap().ends_with("CLAUDE.md"));
     }
 
     #[test]
