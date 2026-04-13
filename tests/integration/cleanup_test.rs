@@ -9,6 +9,7 @@ fn cleanup_removes_stale_generated_files() {
         dir.path(),
         agentic_sync::Mode::Fix { overwrite: false },
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
     assert!(dir.path().join(".cursor/rules/stack.mdc").exists());
@@ -24,6 +25,7 @@ fn cleanup_removes_stale_generated_files() {
         dir.path(),
         agentic_sync::Mode::Fix { overwrite: false },
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
 

@@ -28,6 +28,12 @@ struct Cli {
     #[arg(long = "out", value_delimiter = ',')]
     targets: Vec<String>,
 
+    /// Preferred instruction file: "claude" (default) or "agents"
+    /// When "agents", AGENTS.md is the source of truth and CLAUDE.md
+    /// is generated containing @AGENTS.md
+    #[arg(long, default_value = "claude")]
+    prefer: String,
+
     /// Project root (defaults to cwd)
     path: Option<PathBuf>,
 }
@@ -57,9 +63,18 @@ fn main() -> ExitCode {
         }
     };
 
+    let prefer = match cli.prefer.as_str() {
+        "claude" => agentic_sync::Prefer::Claude,
+        "agents" => agentic_sync::Prefer::Agents,
+        other => {
+            agentic_sync::log::error(&format!("Invalid --prefer value: {other} (use 'claude' or 'agents')"));
+            return ExitCode::from(2);
+        }
+    };
+
     let root = cli.path.unwrap_or_else(|| PathBuf::from("."));
 
-    match agentic_sync::run(&root, mode, &targets) {
+    match agentic_sync::run(&root, mode, &targets, prefer) {
         Ok(status) => status,
         Err(e) => {
             agentic_sync::log::error(&format!("{e}"));

@@ -1,3 +1,4 @@
+use crate::Prefer;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Default)]
@@ -8,11 +9,15 @@ pub struct Sources {
     pub mcp_json: Option<PathBuf>,
 }
 
-pub fn discover(root: &Path) -> Sources {
+pub fn discover(root: &Path, prefer: Prefer) -> Sources {
     let mut sources = Sources::default();
 
-    // Look for instruction files in priority order
-    for name in ["CLAUDE.md", "AGENTS.md", "AGENT.md"] {
+    // Discovery order depends on preference
+    let priority: &[&str] = match prefer {
+        Prefer::Claude => &["CLAUDE.md", "AGENTS.md", "AGENT.md"],
+        Prefer::Agents => &["AGENTS.md", "AGENT.md", "CLAUDE.md"],
+    };
+    for name in priority {
         let path = root.join(name);
         if path.is_file() {
             sources.claude_md = Some(path);
@@ -84,7 +89,7 @@ mod tests {
         // Create .mcp.json
         fs::write(root.join(".mcp.json"), "{}").unwrap();
 
-        let sources = discover(root);
+        let sources = discover(root, Prefer::Claude);
 
         assert!(sources.claude_md.is_some());
         assert_eq!(sources.rules.len(), 1);
@@ -99,7 +104,7 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let root = dir.path();
         fs::write(root.join("AGENTS.md"), "# Agents").unwrap();
-        let sources = discover(root);
+        let sources = discover(root, Prefer::Claude);
         assert!(sources.claude_md.is_some());
         assert!(sources.claude_md.unwrap().ends_with("AGENTS.md"));
     }
@@ -109,7 +114,7 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let root = dir.path();
         fs::write(root.join("AGENT.md"), "# Agent").unwrap();
-        let sources = discover(root);
+        let sources = discover(root, Prefer::Claude);
         assert!(sources.claude_md.is_some());
         assert!(sources.claude_md.unwrap().ends_with("AGENT.md"));
     }
@@ -120,14 +125,33 @@ mod tests {
         let root = dir.path();
         fs::write(root.join("CLAUDE.md"), "# Claude").unwrap();
         fs::write(root.join("AGENTS.md"), "# Agents").unwrap();
-        let sources = discover(root);
+        let sources = discover(root, Prefer::Claude);
+        assert!(sources.claude_md.unwrap().ends_with("CLAUDE.md"));
+    }
+
+    #[test]
+    fn prefer_agents_reverses_priority() {
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        fs::write(root.join("CLAUDE.md"), "# Claude").unwrap();
+        fs::write(root.join("AGENTS.md"), "# Agents").unwrap();
+        let sources = discover(root, Prefer::Agents);
+        assert!(sources.claude_md.unwrap().ends_with("AGENTS.md"));
+    }
+
+    #[test]
+    fn prefer_agents_falls_back_to_claude() {
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        fs::write(root.join("CLAUDE.md"), "# Claude").unwrap();
+        let sources = discover(root, Prefer::Agents);
         assert!(sources.claude_md.unwrap().ends_with("CLAUDE.md"));
     }
 
     #[test]
     fn empty_dir_returns_empty_sources() {
         let dir = TempDir::new().unwrap();
-        let sources = discover(dir.path());
+        let sources = discover(dir.path(), Prefer::Claude);
 
         assert!(sources.claude_md.is_none());
         assert!(sources.rules.is_empty());

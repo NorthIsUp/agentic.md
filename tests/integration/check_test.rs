@@ -8,6 +8,7 @@ fn check_reports_stale_on_fresh_project() {
         dir.path(),
         agentic_sync::Mode::Check,
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
     assert_eq!(result, ExitCode::from(1));
@@ -21,12 +22,14 @@ fn check_passes_after_fix() {
         dir.path(),
         agentic_sync::Mode::Fix { overwrite: false },
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
     let result = agentic_sync::run(
         dir.path(),
         agentic_sync::Mode::Check,
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
     assert_eq!(result, ExitCode::SUCCESS);
@@ -40,6 +43,7 @@ fn pr_mode_exits_1_when_stale() {
         dir.path(),
         agentic_sync::Mode::Pr,
         &agentic_sync::all_targets(),
+        agentic_sync::Prefer::default(),
     )
     .unwrap();
     assert_eq!(result, ExitCode::from(1));
