@@ -1,4 +1,5 @@
 amends "package://github.com/jdx/hk/releases/download/v1.18.1/hk@1.18.1#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.18.1/hk@1.18.1#/Builtins.pkl"
 
 local linters = new Mapping<String, Step> {
     ["agentic-sync"] {
@@ -6,11 +7,19 @@ local linters = new Mapping<String, Step> {
         check = "cargo run -- --check"
         fix = "cargo run -- --fix"
     }
-    ["cargo-fmt"] {
-        glob = List("**/*.rs")
-        check = "cargo fmt --all -- --check"
-        fix = "cargo fmt --all"
+    ["cargo-fmt"] = (Builtins.cargo_fmt) {}
+    ["cargo-clippy"] = (Builtins.cargo_clippy) {}
+    ["cargo-check"] = (Builtins.cargo_check) {}
+    ["taplo"] = (Builtins.taplo) {
+        glob = List("**/*.toml")
     }
+    ["pkl"] = (Builtins.pkl) {
+        glob = List("**/*.pkl")
+    }
+    ["actionlint"] = (Builtins.actionlint) {
+        glob = List(".github/workflows/*.yml")
+    }
+    ["trailing-whitespace"] = (Builtins.trailing_whitespace) {}
 }
 
 hooks {
