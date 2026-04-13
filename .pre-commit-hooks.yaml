@@ -1,0 +1,15 @@
+- id: agentic-sync-check
+  name: agentic-sync (check)
+  description: Check that Cursor/Copilot config is in sync with Claude config
+  entry: agentic-sync --check
+  language: system
+  pass_filenames: false
+  files: '(CLAUDE\.md|\.claude/|\.mcp\.json)'
+
+- id: agentic-sync-fix
+  name: agentic-sync (fix)
+  description: Sync Claude config to Cursor/Copilot
+  entry: agentic-sync --fix
+  language: system
+  pass_filenames: false
+  files: '(CLAUDE\.md|\.claude/|\.mcp\.json)'

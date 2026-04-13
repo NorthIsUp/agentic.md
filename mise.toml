@@ -1,0 +1,11 @@
+[tools]
+pkl = "0.31"
+rust = "latest"
+
+[tasks."hk:check"]
+run = "hk check"
+description = "Run all hk checks"
+
+[tasks."hk:fix"]
+run = "hk fix"
+description = "Run all hk fixes"
