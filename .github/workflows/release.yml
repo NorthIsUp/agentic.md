@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: agentic-sync-x86_64-linux
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: agentic-sync-aarch64-linux
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            artifact: agentic-sync-x86_64-darwin
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            artifact: agentic-sync-aarch64-darwin
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            artifact: agentic-sync-x86_64-windows.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary (unix)
+        if: runner.os != 'Windows'
+        run: cp target/${{ matrix.target }}/release/agentic-sync ${{ matrix.artifact }}
+
+      - name: Rename binary (windows)
+        if: runner.os == 'Windows'
+        run: cp target/${{ matrix.target }}/release/agentic-sync.exe ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create checksums
+        run: |
+          cd artifacts
+          sha256sum agentic-sync-* > checksums-sha256.txt
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/agentic-sync-*
+            artifacts/checksums-sha256.txt
