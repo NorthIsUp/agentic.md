@@ -24,6 +24,14 @@ struct Cli {
     #[arg(long)]
     overwrite: bool,
 
+    /// Skip managing the linguist-generated entries in .gitattributes
+    #[arg(long = "no-gitattrs")]
+    no_gitattrs: bool,
+
+    /// Skip auto-resolving merge conflicts in generated files
+    #[arg(long = "no-conflict-regen")]
+    no_conflict_regen: bool,
+
     /// Target tools to generate for (comma-separated, repeatable)
     #[arg(long = "out", value_delimiter = ',')]
     targets: Vec<String>,
@@ -74,7 +82,7 @@ fn main() -> ExitCode {
 
     let root = cli.path.unwrap_or_else(|| PathBuf::from("."));
 
-    match agentic_sync::run(&root, mode, &targets, prefer) {
+    match agentic_sync::run(&root, mode, &targets, prefer, !cli.no_gitattrs, !cli.no_conflict_regen) {
         Ok(status) => status,
         Err(e) => {
             agentic_sync::log::error(&format!("{e}"));

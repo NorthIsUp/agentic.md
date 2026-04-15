@@ -9,6 +9,8 @@ fn fix_generates_all_target_files() {
         agentic_sync::Mode::Fix { overwrite: false },
         &agentic_sync::all_targets(),
         agentic_sync::Prefer::default(),
+        false,
+        true,
     )
     .unwrap();
     assert_eq!(result, std::process::ExitCode::SUCCESS);
@@ -42,6 +44,8 @@ fn fix_prefer_agents_generates_claude_md_reference() {
         agentic_sync::Mode::Fix { overwrite: false },
         &agentic_sync::all_targets(),
         agentic_sync::Prefer::Agents,
+        false,
+        true,
     )
     .unwrap();
 
@@ -67,6 +71,8 @@ fn fix_with_target_filter() {
         agentic_sync::Mode::Fix { overwrite: false },
         &[agentic_sync::Target::Cursor],
         agentic_sync::Prefer::default(),
+        false,
+        true,
     )
     .unwrap();
     assert!(dir.path().join(".cursor/rules/stack.mdc").exists());
