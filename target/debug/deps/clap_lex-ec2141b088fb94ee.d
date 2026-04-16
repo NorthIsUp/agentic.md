@@ -1,0 +1,8 @@
+/private/tmp/agentic.md-work/target/debug/deps/clap_lex-ec2141b088fb94ee.d: /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/private/tmp/agentic.md-work/target/debug/deps/libclap_lex-ec2141b088fb94ee.rlib: /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/private/tmp/agentic.md-work/target/debug/deps/libclap_lex-ec2141b088fb94ee.rmeta: /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs /Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs
+
+/Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/lib.rs:
+/Users/adam/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_lex-1.1.0/src/ext.rs:

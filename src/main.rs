@@ -67,7 +67,9 @@ fn main() -> ExitCode {
         "claude" => agentic_sync::Prefer::Claude,
         "agents" => agentic_sync::Prefer::Agents,
         other => {
-            agentic_sync::log::error(&format!("Invalid --prefer value: {other} (use 'claude' or 'agents')"));
+            agentic_sync::log::error(&format!(
+                "Invalid --prefer value: {other} (use 'claude' or 'agents')"
+            ));
             return ExitCode::from(2);
         }
     };
