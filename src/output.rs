@@ -82,7 +82,10 @@ pub fn fix(files: &[GeneratedFile], overwrite: bool, conflict_regen: bool) -> Ou
 
             // Skip conflicted files when conflict_regen is disabled
             if !conflict_regen && existing.contains(CONFLICT_MARKER) {
-                crate::log::warn_file(&file.path, "skipped (merge conflict; run without --no-conflict-regen to auto-resolve)");
+                crate::log::warn_file(
+                    &file.path,
+                    "skipped (merge conflict; run without --no-conflict-regen to auto-resolve)",
+                );
                 result.skipped.push(file.path.clone());
                 continue;
             }
@@ -319,7 +322,10 @@ mod tests {
         fs::write(&path, conflicted).unwrap();
 
         let fresh = "---\ngenerated-by: agentic-sync\n---\n\nFresh.\n".to_string();
-        let files = vec![GeneratedFile { path: path.clone(), content: fresh.clone() }];
+        let files = vec![GeneratedFile {
+            path: path.clone(),
+            content: fresh.clone(),
+        }];
 
         let result = fix(&files, false, true);
         assert_eq!(result.written.len(), 1);

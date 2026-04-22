@@ -75,14 +75,23 @@ fn main() -> ExitCode {
         "claude" => agentic_sync::Prefer::Claude,
         "agents" => agentic_sync::Prefer::Agents,
         other => {
-            agentic_sync::log::error(&format!("Invalid --prefer value: {other} (use 'claude' or 'agents')"));
+            agentic_sync::log::error(&format!(
+                "Invalid --prefer value: {other} (use 'claude' or 'agents')"
+            ));
             return ExitCode::from(2);
         }
     };
 
     let root = cli.path.unwrap_or_else(|| PathBuf::from("."));
 
-    match agentic_sync::run(&root, mode, &targets, prefer, !cli.no_gitattrs, !cli.no_conflict_regen) {
+    match agentic_sync::run(
+        &root,
+        mode,
+        &targets,
+        prefer,
+        !cli.no_gitattrs,
+        !cli.no_conflict_regen,
+    ) {
         Ok(status) => status,
         Err(e) => {
             agentic_sync::log::error(&format!("{e}"));

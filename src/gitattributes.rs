@@ -57,7 +57,12 @@ fn replace_section(existing: &str, section: &str) -> String {
             } else {
                 end
             };
-            format!("{}{}\n{}", &existing[..begin], section, &existing[after_end..])
+            format!(
+                "{}{}\n{}",
+                &existing[..begin],
+                section,
+                &existing[after_end..]
+            )
         } else {
             // Malformed: BEGIN without END — replace from BEGIN to EOF
             format!("{}{}\n", &existing[..begin], section)
@@ -66,7 +71,11 @@ fn replace_section(existing: &str, section: &str) -> String {
         format!("{section}\n")
     } else {
         // Append with a blank line separator
-        let sep = if existing.ends_with('\n') { "\n" } else { "\n\n" };
+        let sep = if existing.ends_with('\n') {
+            "\n"
+        } else {
+            "\n\n"
+        };
         format!("{existing}{sep}{section}\n")
     }
 }
@@ -85,7 +94,10 @@ mod tests {
     fn desired_section_format() {
         let dir = TempDir::new().unwrap();
         let root = dir.path();
-        let files = make_files(root, &[".cursor/rules/stack.mdc", ".github/copilot-instructions.md"]);
+        let files = make_files(
+            root,
+            &[".cursor/rules/stack.mdc", ".github/copilot-instructions.md"],
+        );
         let section = desired_section(root, &files);
         assert!(section.starts_with(SECTION_BEGIN));
         assert!(section.ends_with(SECTION_END));
