@@ -1,5 +1,6 @@
 pub mod discover;
 pub mod generate;
+pub mod gitattributes;
 pub mod ir;
 pub mod log;
 pub mod output;
@@ -51,6 +52,8 @@ pub fn run(
     mode: Mode,
     targets: &[Target],
     prefer: Prefer,
+    gitattrs: bool,
+    conflict_regen: bool,
 ) -> Result<ExitCode, Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(root)
         .map_err(|e| format!("Invalid path '{}': {e}", root.display()))?;
@@ -102,16 +105,27 @@ pub fn run(
         });
     }
 
+    let generated_paths: Vec<_> = generated.iter().map(|f| f.path.clone()).collect();
+
     match mode {
         Mode::Check => {
-            let result = output::check(&generated);
+            let result = output::check(&generated, conflict_regen);
+            for path in &result.conflicted {
+                log::warn_file(path, "has merge conflicts (run --fix to regenerate)");
+            }
             for path in &result.stale {
-                log::warn_file(path, "out of sync");
+                if !result.conflicted.contains(path) {
+                    log::warn_file(path, "out of sync");
+                }
             }
             for msg in &result.warnings {
                 log::warn(msg);
             }
-            if result.is_in_sync() {
+            let gitattrs_ok = !gitattrs || gitattributes::is_in_sync(&root, &generated_paths);
+            if !gitattrs_ok {
+                log::warn_file(&root.join(".gitattributes"), "out of sync");
+            }
+            if result.is_in_sync() && gitattrs_ok {
                 log::info("All files in sync.");
                 Ok(ExitCode::SUCCESS)
             } else {
@@ -119,16 +133,28 @@ pub fn run(
             }
         }
         Mode::Fix { overwrite } => {
-            let result = output::fix(&generated, overwrite);
+            let result = output::fix(&generated, overwrite, conflict_regen);
             let deleted = output::cleanup(&root, &generated);
+            for path in &result.conflicted {
+                log::info(&format!("Resolved merge conflict in {}", path.display()));
+            }
             for path in &result.written {
-                log::info(&format!("Wrote {}", path.display()));
+                if !result.conflicted.contains(path) {
+                    log::info(&format!("Wrote {}", path.display()));
+                }
             }
             for path in &result.skipped {
                 log::warn_file(path, "skipped (no generated-by marker)");
             }
             for path in &deleted {
                 log::info(&format!("Deleted {}", path.display()));
+            }
+            if gitattrs {
+                match gitattributes::fix(&root, &generated_paths) {
+                    Ok(true) => log::info("Updated .gitattributes"),
+                    Ok(false) => {}
+                    Err(e) => log::error(&e),
+                }
             }
             if result.skipped.is_empty() {
                 Ok(ExitCode::SUCCESS)
@@ -137,14 +163,21 @@ pub fn run(
             }
         }
         Mode::Pr => {
-            let result = output::check(&generated);
-            if result.is_in_sync() {
+            let result = output::check(&generated, conflict_regen);
+            let gitattrs_ok = !gitattrs || gitattributes::is_in_sync(&root, &generated_paths);
+            if result.is_in_sync() && gitattrs_ok {
                 println!("All agentic-sync files are in sync.");
                 return Ok(ExitCode::SUCCESS);
             }
             println!("## agentic-sync drift detected\n");
             println!("The following files are out of sync with Claude config:\n");
+            for path in &result.conflicted {
+                println!("- `{}` *(has merge conflicts)*", path.display());
+            }
             for path in &result.stale {
+                if result.conflicted.contains(path) {
+                    continue;
+                }
                 println!("- `{}`", path.display());
                 if path.exists() {
                     if let Some(file) = generated.iter().find(|f| f.path == *path) {
@@ -164,6 +197,9 @@ pub fn run(
                 } else {
                     println!("  (new file)\n");
                 }
+            }
+            if !gitattrs_ok {
+                println!("- `.gitattributes` managed section is out of sync");
             }
             for msg in &result.warnings {
                 println!("- Warning: {msg}");
