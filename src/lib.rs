@@ -20,6 +20,7 @@ pub enum Mode {
 pub enum Target {
     Cursor,
     Copilot,
+    Codex,
 }
 
 /// Which instruction file format is the source of truth.
@@ -33,7 +34,7 @@ pub enum Prefer {
 }
 
 pub fn all_targets() -> Vec<Target> {
-    vec![Target::Cursor, Target::Copilot]
+    vec![Target::Cursor, Target::Copilot, Target::Codex]
 }
 
 pub fn parse_targets(names: &[String]) -> Result<Vec<Target>, String> {
@@ -42,6 +43,7 @@ pub fn parse_targets(names: &[String]) -> Result<Vec<Target>, String> {
         .map(|n| match n.as_str() {
             "cursor" => Ok(Target::Cursor),
             "copilot" => Ok(Target::Copilot),
+            "codex" => Ok(Target::Codex),
             other => Err(format!("unknown target: {other}")),
         })
         .collect()
@@ -86,6 +88,21 @@ pub fn run(
                 &root,
                 claude_md_content.as_deref(),
             )),
+            Target::Codex => {
+                let source_is_agents = sources
+                    .claude_md
+                    .as_ref()
+                    .and_then(|p| p.file_name())
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| n == "AGENTS.md");
+                if !source_is_agents {
+                    generated.extend(generate::codex::generate(
+                        &root,
+                        claude_md_content.as_deref(),
+                        prefer,
+                    ));
+                }
+            }
         }
     }
 

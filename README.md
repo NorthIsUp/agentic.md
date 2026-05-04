@@ -113,7 +113,18 @@ Claude skills with frontmatter are mapped to Cursor's `.mdc` format:
 | `name` | filename |
 | `description` | `description` |
 | `paths` | `globs` |
-| `disable-model-invocation: true` | `alwaysApply: false` |
+| `disable-model-invocation: true` | `alwaysApply: false` (manual: no `description`/`globs`) |
+
+Skills are mapped to the right Cursor rule type based on their fields:
+
+| Skill has | Cursor rule type | Frontmatter |
+|---|---|---|
+| `paths` (globs) | Auto-attached | `alwaysApply: false`, `globs:` set |
+| `description` only | Agent-requested | `alwaysApply: false`, `description:` set |
+| `disable-model-invocation: true` | Manual (only on @-mention) | `alwaysApply: false`, no description/globs |
+| Neither | Always | `alwaysApply: true` |
+
+CLAUDE.md `## Heading` sections always use `alwaysApply: true` — they mirror Claude's "always read CLAUDE.md" semantics. Override per-section with a `cursor: alwaysApply=false` frontmatter line if you don't want that.
 
 ### .mcp.json &rarr; .cursor/mcp.json
 
@@ -157,7 +168,7 @@ agentic-sync [--check] [--fix] [--pr] [--out=<targets>] [--overwrite] [path]
 | `--check` | Compare generated files to disk. Exit 1 if stale. **(default)** |
 | `--fix` | Write generated files to disk. |
 | `--pr` | Output a markdown diff summary to stdout (for PR comments). |
-| `--out=<targets>` | Targets to generate: `cursor`, `copilot`. Comma-separated or repeated. Default: all. |
+| `--out=<targets>` | Targets to generate: `cursor`, `copilot`, `codex`. Comma-separated or repeated. Default: all. |
 | `--overwrite` | With `--fix`: overwrite files even without `generated-by` marker. |
 | `path` | Project root. Defaults to current directory. |
 
@@ -204,7 +215,7 @@ agentic-sync --check || { echo "Run 'agentic-sync --fix' to sync"; exit 1; }
 |---|---|---|
 | Cursor | Supported | `.cursor/rules/*.mdc`, `.cursor/skills/*.mdc`, `.cursor/mcp.json` |
 | GitHub Copilot | Supported | `.github/copilot-instructions.md` |
-| Codex | Planned | `AGENTS.md` |
+| Codex | Supported | `AGENTS.md` |
 | Gemini | Planned | `GEMINI.md` |
 
 ## How It Works
