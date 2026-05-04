@@ -157,7 +157,7 @@ agentic-sync [--check] [--fix] [--pr] [--out=<targets>] [--overwrite] [path]
 | `--check` | Compare generated files to disk. Exit 1 if stale. **(default)** |
 | `--fix` | Write generated files to disk. |
 | `--pr` | Output a markdown diff summary to stdout (for PR comments). |
-| `--out=<targets>` | Targets to generate: `cursor`, `copilot`. Comma-separated or repeated. Default: all. |
+| `--out=<targets>` | Targets to generate: `cursor`, `copilot`, `codex`. Comma-separated or repeated. Default: all. |
 | `--overwrite` | With `--fix`: overwrite files even without `generated-by` marker. |
 | `path` | Project root. Defaults to current directory. |
 
@@ -204,7 +204,7 @@ agentic-sync --check || { echo "Run 'agentic-sync --fix' to sync"; exit 1; }
 |---|---|---|
 | Cursor | Supported | `.cursor/rules/*.mdc`, `.cursor/skills/*.mdc`, `.cursor/mcp.json` |
 | GitHub Copilot | Supported | `.github/copilot-instructions.md` |
-| Codex | Planned | `AGENTS.md` |
+| Codex | Supported | `AGENTS.md` |
 | Gemini | Planned | `GEMINI.md` |
 
 ## How It Works
