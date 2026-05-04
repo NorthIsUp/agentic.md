@@ -42,16 +42,35 @@ pub fn generate(root: &Path, config: &ProjectConfig) -> Vec<GeneratedFile> {
     }
 
     for skill in &config.skills {
-        let mut always_apply = if skill.disable_model_invocation {
+        let description_val = skill.description.clone().unwrap_or_default();
+        let globs_val = if skill.paths.is_empty() {
+            String::new()
+        } else {
+            skill.paths.join(", ")
+        };
+
+        // Map to Cursor rule type:
+        // - disable_model_invocation → manual (no description, no globs)
+        // - has globs → auto-attached
+        // - has description → agent-requested
+        // - else → always
+        let mut always_apply = if skill.disable_model_invocation
+            || !globs_val.is_empty()
+            || !description_val.is_empty()
+        {
             "false".to_string()
         } else {
             "true".to_string()
         };
-        let mut description = skill.description.clone().unwrap_or_default();
-        let mut globs = if skill.paths.is_empty() {
+        let mut description = if skill.disable_model_invocation {
             String::new()
         } else {
-            skill.paths.join(", ")
+            description_val
+        };
+        let mut globs = if skill.disable_model_invocation {
+            String::new()
+        } else {
+            globs_val
         };
 
         // Apply cursor overrides
@@ -199,10 +218,76 @@ mod tests {
         assert_eq!(files.len(), 1);
         assert_eq!(files[0].path, root.join(".cursor/skills/explain-code.mdc"));
         assert!(files[0].content.contains("generated-by: agentic-sync"));
-        assert!(files[0].content.contains("alwaysApply: true"));
+        // Skill has globs → auto-attached, not always-apply
+        assert!(files[0].content.contains("alwaysApply: false"));
         assert!(files[0].content.contains("description: Explains code"));
         assert!(files[0].content.contains("globs: src/**/*.rs"));
         assert!(files[0].content.contains("Explain the code."));
+    }
+
+    #[test]
+    fn skill_with_only_description_is_agent_requested() {
+        let dir = TempDir::new().unwrap();
+        let config = ProjectConfig {
+            sections: vec![],
+            skills: vec![Skill {
+                name: "review".to_string(),
+                description: Some("Review changed code".to_string()),
+                paths: vec![],
+                disable_model_invocation: false,
+                target_overrides: HashMap::new(),
+                body: "Look at the diff.".to_string(),
+            }],
+            mcp: None,
+        };
+        let files = generate(dir.path(), &config);
+        assert!(files[0].content.contains("alwaysApply: false"));
+        assert!(
+            files[0]
+                .content
+                .contains("description: Review changed code")
+        );
+        assert!(!files[0].content.contains("globs:"));
+    }
+
+    #[test]
+    fn skill_with_nothing_falls_back_to_always_apply() {
+        let dir = TempDir::new().unwrap();
+        let config = ProjectConfig {
+            sections: vec![],
+            skills: vec![Skill {
+                name: "house-rules".to_string(),
+                description: None,
+                paths: vec![],
+                disable_model_invocation: false,
+                target_overrides: HashMap::new(),
+                body: "Rules.".to_string(),
+            }],
+            mcp: None,
+        };
+        let files = generate(dir.path(), &config);
+        assert!(files[0].content.contains("alwaysApply: true"));
+    }
+
+    #[test]
+    fn disable_model_invocation_strips_description_and_globs() {
+        let dir = TempDir::new().unwrap();
+        let config = ProjectConfig {
+            sections: vec![],
+            skills: vec![Skill {
+                name: "manual".to_string(),
+                description: Some("desc".to_string()),
+                paths: vec!["**/*.rs".to_string()],
+                disable_model_invocation: true,
+                target_overrides: HashMap::new(),
+                body: "x".to_string(),
+            }],
+            mcp: None,
+        };
+        let files = generate(dir.path(), &config);
+        assert!(files[0].content.contains("alwaysApply: false"));
+        assert!(!files[0].content.contains("description:"));
+        assert!(!files[0].content.contains("globs:"));
     }
 
     #[test]
